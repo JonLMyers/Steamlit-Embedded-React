@@ -21,8 +21,8 @@ class ForceGraphComponent extends StreamlitComponentBase<State> {
     const { theme } = this.props
     const backgroundColor = theme?.backgroundColor || "#ffffff"
 
-    // We could use theme.textColor for labels if the library supported it easily
-    // For now we just use the background color
+    // Check if background is dark to adjust node visibility
+    const isDarkTheme = backgroundColor.toLowerCase() !== "#ffffff" && backgroundColor.toLowerCase() !== "#fff";
 
     return (
       <div style={{ width: "100%", height: height }}>
@@ -32,9 +32,26 @@ class ForceGraphComponent extends StreamlitComponentBase<State> {
           graphData={data}
           backgroundColor={backgroundColor}
           nodeLabel="label"
-          // Add some basic interactivity or styling
           nodeAutoColorBy="group"
           linkDirectionalParticles={2}
+          // Interaction: Pin node on drag end
+          onNodeDragEnd={(node: any) => {
+            node.fx = node.x;
+            node.fy = node.y;
+          }}
+          // Visibility: Draw a border around nodes in dark mode
+          nodeCanvasObjectMode={() => 'after'}
+          nodeCanvasObject={(node: any, ctx, globalScale) => {
+            if (isDarkTheme) {
+              // Draw a ring/border
+              const radius = 5; // default nodeRelSize is 4
+              ctx.beginPath();
+              ctx.arc(node.x, node.y, radius, 0, 2 * Math.PI, false);
+              ctx.lineWidth = 1 / globalScale;
+              ctx.strokeStyle = '#ffffff'; // White border in dark mode
+              ctx.stroke();
+            }
+          }}
         />
       </div>
     )
